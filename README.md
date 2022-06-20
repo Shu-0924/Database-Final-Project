@@ -1,2 +1,2 @@
 # Database-Final-Project
-Using flask and jinja2
+Self-created delivery platform by flask and jinja2
