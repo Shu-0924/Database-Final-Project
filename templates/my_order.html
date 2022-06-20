@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- Bootstrap CSS -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="shortcut icon" href={{ url_for('static', filename="img/favicon.ico") }}>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <title>VberEats</title>
+    </head>
+    <body>
+		{% with messages = get_flashed_messages(with_categories=True) %}
+			{% if messages %}
+				{% with message = messages|first %}
+					<div class="alert alert-{{ message[0] }}">
+						<button type="button" class="close" data-dismiss="alert">&times;</button>
+						{{ message[1]}}
+					</div>
+				{% endwith %}
+			{% endif %}
+		{% endwith %}
+        <nav class="navbar navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand " href="#">VberEats</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <ul class="nav nav-tabs">
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                <li><a href="{{ url_for('shop') }}">Shop</a></li>
+				<li class="active"><a href="{{ url_for('my_order') }}">My Order</a></li>
+				<li><a href="{{ url_for('shop_order') }}">Shop Order</a></li>
+				<li><a href="{{ url_for('record') }}">Transaction Record</a></li>
+				<li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+            <div class="tab-content">
+				
+				<div id="myorder" class="tab-pane fade in active">
+					<h3></h3>
+					<form method='post' action="{{ url_for('my_order') }}" class="form-group">
+						<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+						<div class="row">
+							<label class="control-label col-sm-1" style="margin-top:10px;margin-left:20px;" for="Status">Status</label>
+							<div class="col-sm-3">
+								<select class="form-control" id="sel1", name="status">
+									<option value="{{ status_show }}" selected hidden>{{ status_show }}</option>
+									<option value="All">All</option>
+									<option value="Finished">Finished</option>
+									<option value="Not Finish">Not Finish</option>
+									<option value="Cancel">Cancel</option>
+								</select>
+							</div>
+							<button type="submit" class="btn btn-primary">Search</button>
+						</div>
+					</form>
+					<div class="row">
+						<div class="  col-xs-8">
+						<table class="table" style=" margin-top: 15px; width: 100%">
+							<thead>
+								<tr>
+									<th scope="col">Order ID</th>
+									<th scope="col">Status</th>
+									<th scope="col">Start</th>
+									<th scope="col">End</th>
+									<th scope="col">Shop name</th>
+									<th scope="col">Total Price</th>
+									<th scope="col">Order Details</th>
+									<th scope="col">Action</th>
+								</tr>
+							</thead>
+							<tbody>
+							{% for O in orders %}
+								{% if O.status != status_show and status_show != 'All' %}
+									{% continue %}
+								{% endif %}
+								<tr>
+									<th scope="row">{{ O.OID }}</th>
+									<td>{{ O.status }}</td>
+									<td>{{ O.start }}</td>
+									<td>{{ O.end }}</td>
+									<td>{{ shop_list[loop.index].shop_name }}</td>
+									<td>{{ O.total }}</td>
+									<td><button type="button" class="btn btn-info" data-toggle="modal" data-target="#OID{{ O.OID }}">See Details</button></td>
+									<td>
+									{% if O.status == 'Not Finish' %}
+										<form method="post" class="form-group" role="form" action="{{ url_for('cancel_order', ret='my_order') }}">
+											<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+											<input type="hidden" name="OID" value="{{ O.OID }}">
+											<button type="submit" class="btn btn-danger">Cancel</button>
+										</form>
+									{% endif %}
+									</td>
+								</tr>
+							{% endfor %}
+							</tbody>
+						</table>
+						</div>
+					</div>
+                </div>
+				{% for O in orders %}
+				<div class="modal fade" id="OID{{ O.OID }}"  data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+				<div class="modal-dialog">
+				<!-- Modal content-->
+					<div class="modal-content">
+						<div class="modal-header">
+							<h4 class="modal-title">Order ID {{ O.OID }}<button type="button" class="close" data-dismiss="modal">&times;</button></h4>
+						</div>
+						<div class="modal-body">
+							<div class="row">
+								<div class="col-xs-12">
+									<table class="table" style=" margin-top: 15px;">
+										<thead>
+											<tr>
+												<th scope="col">Picture</th>
+												<th scope="col">Meal name</th>
+												<th scope="col">Price</th>
+												<th scope="col">Order Quantity</th>
+											</tr>
+										</thead>
+										<tbody>
+										{% set outer_index = loop.index %}
+											{% for order_product in order_details[loop.index] %}
+											<tr>
+												<td><img src="{{ url_for('static', filename=all_products[outer_index][loop.index].picture) }}" alt="Fail to load the image" width="100" height="100"></td>
+												<td>{{ all_products[outer_index][loop.index].meal_name }}</td>
+												<td>{{ order_product.product_price }}</td>
+												<td>{{ order_product.product_quantity }}</td>
+											</tr>
+											{% endfor %}
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<div style="font-size: 18px; margin-right: 12px;" align="right">Subtotal&ensp;&ensp;${{ subtotals[loop.index] }}</div>
+							<div style="font-size: 16px; margin-right: 12px;" align="right">Delivery fee&ensp;&ensp;${{ O.total-subtotals[loop.index] }}</div>
+							<br>
+							<div style="font-size: 18px; margin-right: 12px;" align="right">Total Price&ensp;&ensp;${{ O.total }}</div>
+						</div>
+					</div>
+				</div>
+				</div>
+				{% endfor %}
+		
+		
+			</div>
+		</div>
+        <!-- Option 1: Bootstrap Bundle with Popper -->
+        <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script> -->
+        <script>
+            $(document).ready(function () {
+              $(".nav-tabs a").click(function () {
+                $(this).tab('show');
+              });
+            });
+        </script>
+        <!-- Option 2: Separate Popper and Bootstrap JS -->
+        <!--
+            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+            -->
+    </body>
+</html>

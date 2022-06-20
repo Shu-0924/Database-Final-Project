@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- Bootstrap CSS -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="shortcut icon" href={{ url_for('static', filename="img/favicon.ico") }}>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <title>VberEats</title>
+    </head>
+    <body>
+		{% with messages = get_flashed_messages(with_categories=True) %}
+			{% if messages %}
+				{% with message = messages|first %}
+					<div class="alert alert-{{ message[0] }}">
+						<button type="button" class="close" data-dismiss="alert">&times;</button>
+						{{ message[1]}}
+					</div>
+				{% endwith %}
+			{% endif %}
+		{% endwith %}
+        <nav class="navbar navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand " href="#">VberEats</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="{{ url_for('home') }}">Home</a></li>
+                <li><a href="{{ url_for('shop') }}">Shop</a></li>
+				<li><a href="{{ url_for('my_order') }}">My Order</a></li>
+				<li><a href="{{ url_for('shop_order') }}">Shop Order</a></li>
+				<li><a href="{{ url_for('record') }}">Transaction Record</a></li>
+				<li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+            <div class="tab-content">
+			
+			
+                <div id="home" class="tab-pane fade in active">
+                    <h3>Profile</h3>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <p>Accouont: {{ user.account }}</p>
+							<p>Name: {{ user.name }}</p>
+							<p>Phone Number: {{ user.phone_number }}</p>
+							<span>Location: {{ user.latitude }}, {{ user.longitude }}</span>
+                            <button type="button " style="margin-left: 5px;" class=" btn btn-info " data-toggle="modal"
+                                data-target="#location">Edit location</button>
+                            <!--  -->
+                            <div class="modal fade" id="location"  data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                <div class="modal-dialog  modal-sm">
+                                    <div class="modal-content">
+										<div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title">Edit location</h4>
+                                        </div>
+										<form method='post' role="form" action="{{ url_for('home') }}" class="form-group" novalidate>
+											{{ edit_location_form.csrf_token }}
+											<div class="modal-body">
+												<label class="control-label " for="latitude">latitude</label>
+												{{ edit_location_form.latitude(class="form-control") }}
+												<br>
+												<label class="control-label " for="longitude">longitude</label>
+												{{ edit_location_form.longitude(class="form-control") }}
+											</div>
+											<div class="modal-footer">
+												{{ edit_location_form.submit(class="btn btn-default") }}
+											</div>
+										</form>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--  -->
+							<br>
+							<br>
+                            <span>Wallet balance: {{ user.wallet_balance }}</span>
+                            <!-- Modal -->
+                            <button type="button " style="margin-left: 5px;" class=" btn btn-info " data-toggle="modal" data-target="#myModal">Add value</button>
+                            <div class="modal fade" id="myModal"  data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                <div class="modal-dialog  modal-sm">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="modal-title">Add value<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></h4>
+                                        </div>
+										<form method='post' action="{{ url_for('add_value') }}" class="form-group">
+											{{ edit_location_form.csrf_token }}
+											<div class="modal-body">
+												<input type="number" min="1" step="1" class="form-control" id="value" placeholder="Enter add value" autocomplete="off" name="value">
+											</div>
+											<div class="modal-footer">
+												<button type="submit" class="btn btn-default">Add</button>
+											</div>
+										</form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 
+                        -->
+                    <h3>Search</h3>
+                    <div class=" row  col-xs-8">
+                        <form method='post' class="form-horizontal" action="{{ url_for('home') }}">
+                            {{ edit_location_form.csrf_token }}
+							<div class="form-group">
+                                <label class="control-label col-sm-1" for="Shop">Shop</label>
+                                <div class="col-sm-5">
+                                    <input type="text" class="form-control" placeholder="Enter Shop name" autocomplete="off" name="shop_name">
+                                </div>
+                                <label class="control-label col-sm-1" for="distance">Distance</label>
+                                <div class="col-sm-5">
+                                    <select class="form-control" id="sel1", name="distance">
+										<option> </option>
+                                        <option>Near</option>
+                                        <option>Medium </option>
+                                        <option>Far</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-1" for="Price">Price</label>
+                                <div class="col-sm-2">
+                                    <input type="number" min="0" step="1" class="form-control" autocomplete="off" name="min_price">
+                                </div>
+								<label class="control-label col-sm-1" for="~">~</label>
+								<div class="col-sm-2">
+                                    <input type="number" min="0" step="1" class="form-control" autocomplete="off" name="max_price">
+                                </div>
+                                <label class="control-label col-sm-1" for="Meal">Meal</label>
+                                <div class="col-sm-5">
+                                    <input type="text" list="Meals" class="form-control" id="Meal" placeholder="Enter Meal" autocomplete="off" name="meal_name">
+                                </div>
+                            </div>
+                            <div class="form-group">
+								<label class="control-label col-sm-1" for="category">Category</label>
+								<div class="col-sm-5">
+									<input type="text" list="categorys" class="form-control" id="category" placeholder="Enter shop category", autocomplete="off" name="shop_category">
+									<datalist id="categorys">
+										{% for x in all_category %}
+										<option value="{{ x }}">
+										{% endfor %}
+									</datalist>
+								</div>
+								<input type="hidden" name="submit" value="Search">
+								<button type="submit" style="margin-left: 18px;"class="btn btn-primary">Search</button>
+                            </div>
+                        </form>
+                    </div>
+					
+					
+					{% if show_result %}
+                    <div class="row">
+                    <div class="  col-xs-8">
+						<table class="table" style=" margin-top: 15px;">
+							<thead>
+								<tr>
+									<th scope="col">#</th>
+									<th scope="col">Shop name</th>
+									<th scope="col">Shop category</th>
+									<th scope="col">Distance</th>
+								</tr>
+							</thead>
+							<tbody>
+							{% set ns = namespace(num=1) %}
+								{% for shop in shop_list %}
+								<tr>
+									{% if distance_require == 'Near' and distances[loop.index] > 3 %}
+										{% continue %}
+									{% endif %}
+									{% if distance_require == 'Medium' and (distances[loop.index] <= 3 or distances[loop.index] >= 10) %}
+										{% continue %}
+									{% endif %}
+									{% if distance_require == 'Far' and distances[loop.index] < 10 %}
+										{% continue %}
+									{% endif %}
+									
+									<th scope="row">{{ ns.num }}</th>
+									<td>{{ shop.shop_name }}</td>
+									<td>{{ shop.shop_category }}</td>
+									<td>
+										{% if distances[loop.index] <= 3 %}
+										<span>Near</span>
+										{% elif distances[loop.index] < 10 %}
+										<span>Medium</span>
+										{% else %}
+										<span>Far</span>
+										{% endif %}
+										{{ ' (' + distances[loop.index]|string + ' km' + ')' }}
+									</td>
+									<td><button type="button" class="btn btn-info " data-toggle="modal" data-target="#SID{{ shop.SID }}">Open Menu</button></td>
+								</tr>
+								{% set ns.num = ns.num + 1 %}
+								{% endfor %}
+							</tbody>
+						</table>
+					
+					
+						<!-- Modal -->
+						{% for shop in shop_list %}
+						<div class="modal fade" id="SID{{ shop.SID }}"  data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+						<div class="modal-dialog">
+						<!-- Modal content-->
+							<div class="modal-content">
+								<div class="modal-header">
+									<h4 class="modal-title">{{ shop.shop_name }}<button type="button" class="close" data-dismiss="modal">&times;</button></h4>
+								</div>
+								{% if shop_menu[loop.index]|length != 0 %}
+								<form method='post' action="{{ url_for('view_order', SID=shop.SID) }}" class="form-group">
+									<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+									<div class="modal-body">
+										<div class="row">
+											<div class="col-xs-12">
+												<table class="table" style=" margin-top: 15px;">
+													<thead>
+														<tr>
+															<th scope="col">#</th>
+															<th scope="col">Picture</th>
+															<th scope="col">Meal name</th>
+															<th scope="col">Price</th>
+															<th scope="col">Quantity</th>
+															<th scope="col">Order</th>
+														</tr>
+													</thead>
+													<tbody>
+													{% with meals=shop_menu[loop.index] %}
+													{% set ns2 = namespace(num=1) %}
+														{% for meal in meals %}
+														{% if meal.exist == 'true' %}
+														<tr>
+															<th scope="row">{{ ns2.num }}</th>
+															<td><img src="{{ url_for('static', filename=meal.picture) }}" alt="Fail to load the image" width="100" height="100"></td>
+															<td>{{ meal.meal_name }}</td>
+															<td>{{ meal.price }}</td>
+															<td>{{ meal.quantity }}</td>
+															<td><input type="number" min="0" max="{{ meal.quantity }}" step="1" value="0" class="form-control" autocomplete="off" name="{{ 'PID' + meal.PID|string }}"></td>
+														</tr>
+														{% set ns2.num = ns2.num + 1 %}
+														{% endif %}
+														{% endfor %}
+													{% endwith %}
+													</tbody>
+												</table>
+											</div>
+										</div>
+										<div class="row">
+											<label class="control-label col-sm-1" style="margin-top:7px;margin-left:5px;" for="Type">Type</label>
+											<div class="col-sm-3">
+												<select class="form-control" id="type", name="type">
+													<option value="Delivery" selected hidden>Delivery</option>
+													<option value="Delivery">Delivery</option>
+													<option value="Pick-up">Pick-up</option>
+												</select>
+											</div>
+										</div>
+									</div>
+									<div class="modal-footer">
+										<input type="hidden" name="submit" value="Calculate the price">
+										<button type="submit" class="btn btn-default">Calculate the price</button>
+									</div>
+								</form>
+								{% else %}
+								<h4 align="center">This shop have no product.</h4>
+								{% endif %}
+							</div>
+						</div>
+						</div>
+						{% endfor %}
+                    </div>
+                    </div>
+					{% endif %}
+                </div>
+		
+			</div>
+		</div>
+        <!-- Option 1: Bootstrap Bundle with Popper -->
+        <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script> -->
+        <script>
+            $(document).ready(function () {
+              $(".nav-tabs a").click(function () {
+                $(this).tab('show');
+              });
+            });
+        </script>
+        <!-- Option 2: Separate Popper and Bootstrap JS -->
+        <!--
+            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+            -->
+    </body>
+</html>

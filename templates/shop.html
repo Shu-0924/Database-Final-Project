@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- Bootstrap CSS -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <title>VberEats</title>
+    </head>
+    <body>
+		{% with messages = get_flashed_messages(with_categories=True) %}
+			{% if messages %}
+				{% with message = messages|first %}
+					<div class="alert alert-{{ message[0] }}">
+						<button type="button" class="close" data-dismiss="alert">&times;</button>
+						{{ message[1]}}
+					</div>
+				{% endwith %}
+			{% endif %}
+		{% endwith %}
+        <nav class="navbar navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand " href="#">VberEats</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <ul class="nav nav-tabs">
+				<li><a href="{{ url_for('home') }}">Home</a></li>
+                <li class="active"><a href="{{ url_for('shop') }}">Shop</a></li>
+				<li><a href="{{ url_for('my_order') }}">My Order</a></li>
+				<li><a href="{{ url_for('shop_order') }}">Shop Order</a></li>
+				<li><a href="{{ url_for('record') }}">Transaction Record</a></li>
+				<li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+            <div class="tab-content">
+
+							
+                <div id="shop" class="tab-pane fade in active">
+                <h3> Start a business </h3>
+                <form method='post' action="{{ url_for('shop') }}" class="form-group" novalidate>
+					{{ register_form.csrf_token }}
+					<div class="row">
+						<div class="col-xs-2">
+						<label for="ex5">shop name</label>
+						{% if shop %}
+							<input class="form-control" id="ex5" placeholder="{{ shop.shop_name }}" type="text" disabled="disabled">
+						{% else %}
+							{{ register_form.shop_name(class="form-control") }}
+							<span style="color: red;">{{ register_form.shop_name.errors[0] }}</span>
+						{% endif %}
+						</div>
+						<div class="col-xs-2">
+						<label for="ex5">shop category</label>
+						{% if shop %}
+							<input class="form-control" id="ex5" placeholder="{{ shop.shop_category }}" type="text" disabled="disabled">
+						{% else %}
+							{{ register_form.shop_category(class="form-control") }}
+							<span style="color: red;">{{ register_form.shop_category.errors[0] }}</span>
+						{% endif %}
+						</div>
+						<div class="col-xs-2">
+						<label for="ex6">latitude</label>
+						{% if shop %}
+							<input class="form-control" id="ex6" placeholder="{{ shop.latitude }}" type="text" disabled="disabled">
+						{% else %}
+							{{ register_form.latitude(class="form-control") }}
+							<span style="color: red;">{{ register_form.latitude.errors[0] }}</span>
+						{% endif %}
+						</div>
+						<div class="col-xs-2">
+						<label for="ex8">longitude</label>
+						{% if shop %}
+							<input class="form-control" id="ex8" placeholder="{{ shop.longitude }}" type="text" disabled="disabled">
+						{% else %}
+							{{ register_form.longitude(class="form-control") }}
+							<span style="color: red;">{{ register_form.longitude.errors[0] }}</span>
+						{% endif %}
+						</div>
+					</div>
+					<div class=" row" style=" margin-top: 25px;">
+						<div class=" col-xs-3">
+						{% if shop %}
+							<button type="submit" class="btn btn-primary" disabled="disabled">register</button>
+						{% else %}
+							{{ register_form.submit(class="btn btn-primary") }}
+						{% endif %}
+						</div>
+					</div>
+				</form>
+                <hr>
+				
+				{% if shop %}
+					<h3>ADD</h3>
+					<form method='post' action="{{ url_for('shop') }}" class="form-group" enctype="multipart/form-data" novalidate>
+						{{ add_meal_form.csrf_token }}
+						<div class="row">
+							<div class="col-xs-6">
+								<label for="ex3">meal name</label>
+								{{ add_meal_form.meal_name(class="form-control") }}
+								<span style="color: red;">{{ add_meal_form.meal_name.errors[0] }}</span>
+							</div>
+						</div>
+						<div class="row" style=" margin-top: 15px;">
+							<div class="col-xs-3">
+								<label for="ex7">price</label>
+								{{ add_meal_form.price(class="form-control") }}
+								<span style="color: red;">{{ add_meal_form.price.errors[0] }}</span>
+							</div>
+							<div class="col-xs-3">
+								<label for="ex4">quantity</label>
+								{{ add_meal_form.quantity(class="form-control") }}
+								<span style="color: red;">{{ add_meal_form.quantity.errors[0] }}</span>
+							</div>
+						</div>
+						<div class="row" style=" margin-top: 25px;">
+							<div class=" col-xs-3">
+								<label for="ex12">upload picture</label>
+								{{ add_meal_form.picture }}
+								<span style="color: red;">{{ add_meal_form.picture.errors[0] }}</span>
+							</div>
+							<div class=" col-xs-3">
+								{{ add_meal_form.submit(class="btn btn-primary") }}
+							</div>
+						</div>
+					</form>
+					<div class="row">
+					<div class="  col-xs-8">
+						<table class="table" style=" margin-top: 15px;">
+						<thead>
+							<tr>
+								<th scope="col">#</th>
+								<th scope="col">Picture</th>
+								<th scope="col">meal name</th>
+								<th scope="col">price</th>
+								<th scope="col">Quantity</th>
+								<th scope="col">Edit</th>
+								<th scope="col">Delete</th>
+							</tr>
+						</thead>
+						<tbody>
+						{% set ns = namespace(num=1) %}
+							{% for meal in shop_menu %}
+							{% if meal.exist == 'true' %}
+							<tr>
+								<th scope="row">{{ ns.num }}</th>
+								<td width="150"><img src="{{ url_for('static', filename=meal.picture) }}" alt="Fail to load the image" width="100" height="100"></td>
+								<td>{{ meal.meal_name }}</td>
+								<td>{{ meal.price }}</td>
+								<td>{{ meal.quantity }}</td>
+								<td><button type="button" class="btn btn-info" data-toggle="modal" data-target="#{{meal.PID}}">Edit</button></td>
+								<form method="post" class="form-group" role="form" action="{{ url_for('delete_product', PID=meal.PID) }}">
+									{{ add_meal_form.csrf_token }}
+									<td><button type="submit" class="btn btn-danger">Delete</button></td>
+								</form>
+								
+								<!-- Modal -->
+								<div class="modal fade" id="{{ meal.PID }}" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+								<div class="modal-dialog" role="document">
+								<div class="modal-content">
+								<div class="modal-header">
+									<h4 class="modal-title" id="staticBackdropLabel">{{ meal.meal_name }} Edit<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></h4>					
+								</div>
+								<form method="post" class="form-group" role="form" action="{{ url_for('edit_product', PID=meal.PID) }}">
+									{{ add_meal_form.csrf_token }}
+									<div class="modal-body">
+										<div class="row" >
+											<div class="col-xs-6">
+												<label for="{{ meal.PID }}">price</label>
+												<input class="form-control" id="{{ meal.PID }}" type="text" name="{{ meal.PID|string + 'price' }}" autocomplete="off">
+											</div>
+											<div class="col-xs-6">
+												<label for="{{ meal.PID }}">quantity</label>
+												<input class="form-control" id="{{ meal.PID }}" type="text" name="{{ meal.PID|string + 'quantity' }}" autocomplete="off">
+											</div>
+										</div>
+									</div>
+									<div class="modal-footer">
+										<button type="submit" class="btn btn-secondary">Edit</button>
+									</div>
+								</form>
+								</div>
+								</div>
+								</div>
+							</tr>
+							{% set ns.num = ns.num + 1 %}
+							{% endif %}
+							{% endfor %}
+						</tbody>
+						</table>
+					</div>
+					</div>
+				{% endif %}
+                </div>
+            </div>
+        </div>
+		
+		
+        <!-- Option 1: Bootstrap Bundle with Popper -->
+        <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script> -->
+        <script>
+            $(document).ready(function () {
+              $(".nav-tabs a").click(function () {
+                $(this).tab('show');
+              });
+            });
+        </script>
+        <!-- Option 2: Separate Popper and Bootstrap JS -->
+        <!--
+            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+            -->
+    </body>
+</html>
