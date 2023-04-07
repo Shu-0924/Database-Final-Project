@@ -592,5 +592,5 @@ def logout():
 
 if __name__ == '__main__':
     app.debug = True
-    app.secret_key = "NMSL"
+    app.secret_key = "tbUtkhJWSOBVGb"
     app.run()
